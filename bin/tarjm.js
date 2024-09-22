@@ -8,7 +8,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import chalk from 'chalk';
 
-export default async function transl() {
+export default async function tarjm() {
     // Parse command-line arguments
     const args = minimist(process.argv.slice(2));
     const setDefaultLanguage = args.d || args.default;
@@ -127,5 +127,5 @@ export default async function transl() {
 // Ensure the script runs when executed directly
 const scriptPath = fileURLToPath(import.meta.url);
 if (process.argv[1] === scriptPath) {
-    transl();
+    tarjm();
 }
