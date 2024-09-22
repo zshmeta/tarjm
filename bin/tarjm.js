@@ -14,6 +14,49 @@ export default async function tarjm() {
     const setDefaultLanguage = args.d || args.default;
     const specifiedLanguage = args.l || args.language;
     const filePath = args.f || args.file;
+    const showHelp = args.h || args.help;
+
+    // Show help message
+    if (showHelp) {
+        console.log(chalk.green(`
+Usage:
+  tarjm [options] [text_to_translate]
+
+Options:
+  -d, --default <language>   Set the default target language for translation.
+                             This setting will be saved in the config file (~/.config/tarjm/config.json).
+                             If no text or file is provided, the script will exit after setting the default language.
+
+  -l, --language <language>  Specify the target language for this translation.
+                             This option overrides the default language set in the config.
+
+  -f, --file <path>          Read the text to translate from the specified file.
+
+  -h, --help                 Display this help message.
+
+Examples:
+  tarjm "Hello World"
+      Translates "Hello World" to the default language (or English if not set).
+
+  tarjm -l es "Hello World"
+      Translates "Hello World" to Spanish.
+
+  tarjm -f mytext.txt
+      Translates the content of 'mytext.txt' to the default language.
+
+  tarjm -d fr
+      Sets the default language to French.
+
+  tarjm -h
+      Displays this help message.
+
+Description:
+  tarjm is a command-line tool for translating text using a translation server.
+  It allows you to translate text provided directly in the command line or from a file.
+  You can set a default target language or specify one per translation.
+`));
+        process.exit(0);
+    }
 
     // Get the text to translate from the remaining arguments
     let textTotarjm = args._.join(' ');
@@ -112,12 +155,12 @@ export default async function tarjm() {
 
         const data = await res.json();
 
-        // Check if the tarjmation was successful
+        // Check if the translation was successful
         if (data && data.translatedText) {
-            console.log(chalk.cyan('translated Text:\n'));
+            console.log(chalk.cyan('Translated Text:\n'));
             console.log(chalk.bold(data.translatedText));
         } else {
-            console.error(chalk.red('tarjmation failed:'), data);
+            console.error(chalk.red('Translation failed:'), data);
         }
     } catch (error) {
         console.error(chalk.red('Error:'), error.message);
