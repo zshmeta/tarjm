@@ -1,5 +1,5 @@
 // index.js
 
-import transl from './bin/transl.js';
+import tarjm from './bin/tarjm.js';
 
-transl();
+tarjm();
