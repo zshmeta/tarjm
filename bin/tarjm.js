@@ -8,9 +8,9 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import chalk from 'chalk';
 
-export default async function tarjm() {
+export async function tarjm(args = process.argv.slice(2)) {
     // Parse command-line arguments
-    const args = minimist(process.argv.slice(2));
+    args = minimist(args);
     const setDefaultLanguage = args.d || args.default;
     const specifiedLanguage = args.l || args.language;
     const filePath = args.f || args.file;
@@ -55,11 +55,12 @@ Description:
   It allows you to translate text provided directly in the command line or from a file.
   You can set a default target language or specify one per translation.
 `));
+        if (require.main !== module) return; // Exit if imported as a module
         process.exit(0);
     }
 
     // Get the text to translate from the remaining arguments
-    let textTotarjm = args._.join(' ');
+    let textToTranslate = args._.join(' ');
 
     // Paths
     const homeDir = os.homedir();
@@ -102,7 +103,8 @@ Description:
         writeConfig(config);
         console.log(chalk.green(`Default language set to: ${setDefaultLanguage}`));
         // If there's no text to translate and no file, exit after setting the default
-        if (!textTotarjm && !filePath) {
+        if (!textToTranslate && !filePath) {
+            if (require.main !== module) return;
             process.exit(0);
         }
     }
@@ -123,15 +125,17 @@ Description:
     // Read text from file if filePath is provided
     if (filePath) {
         try {
-            textTotarjm = fs.readFileSync(filePath, 'utf-8');
+            textToTranslate = fs.readFileSync(filePath, 'utf-8');
         } catch (error) {
             console.error(chalk.red('Error reading file:'), error.message);
+            if (require.main !== module) throw error;
             process.exit(1);
         }
     }
 
-    if (!textTotarjm) {
+    if (!textToTranslate) {
         console.error(chalk.red('Please provide text to translate.'));
+        if (require.main !== module) throw new Error('No text provided.');
         process.exit(1);
     }
 
@@ -139,7 +143,7 @@ Description:
         const res = await fetch('http://tarjm:5000/translate', {
             method: 'POST',
             body: JSON.stringify({
-                q: textTotarjm,
+                q: textToTranslate,
                 source: 'auto',
                 target: targetLanguage,
                 format: 'text',
@@ -159,16 +163,18 @@ Description:
         if (data && data.translatedText) {
             console.log(chalk.cyan('Translated Text:\n'));
             console.log(chalk.bold(data.translatedText));
+            return data.translatedText; // Return the translated text when used as a module
         } else {
             console.error(chalk.red('Translation failed:'), data);
+            if (require.main !== module) throw new Error('Translation failed.');
         }
     } catch (error) {
         console.error(chalk.red('Error:'), error.message);
+        if (require.main !== module) throw error;
     }
 }
 
 // Ensure the script runs when executed directly
-const scriptPath = fileURLToPath(import.meta.url);
-if (process.argv[1] === scriptPath) {
+if (import.meta.url === `file://${process.argv[1]}`) {
     tarjm();
 }
